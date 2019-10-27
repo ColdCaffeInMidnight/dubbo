@@ -53,14 +53,19 @@ public class ConsistentHashLoadBalance extends AbstractLoadBalance {
     @SuppressWarnings("unchecked")
     @Override
     protected <T> Invoker<T> doSelect(List<Invoker<T>> invokers, URL url, Invocation invocation) {
+        //通过rpc调用的路径获取方法名称
         String methodName = RpcUtils.getMethodName(invocation);
         String key = invokers.get(0).getUrl().getServiceKey() + "." + methodName;
+        //对待调用invoker使用native方法生成hashcode
         int identityHashCode = System.identityHashCode(invokers);
+        //从一致性hash映射容器中获取符合(rpc调用路径生成key)的服务选择器,没有的话则在映射中对指定路径初始化一个选择器再调用
         ConsistentHashSelector<T> selector = (ConsistentHashSelector<T>) selectors.get(key);
         if (selector == null || selector.identityHashCode != identityHashCode) {
+            //这里通过一致性hash选择器的构造方法传入参数进行了选择器的初始化
             selectors.put(key, new ConsistentHashSelector<T>(invokers, methodName, identityHashCode));
             selector = (ConsistentHashSelector<T>) selectors.get(key);
         }
+        //通过一个具体的选择器获取到具体的invoker
         return selector.select(invocation);
     }
 
@@ -78,10 +83,13 @@ public class ConsistentHashLoadBalance extends AbstractLoadBalance {
             this.virtualInvokers = new TreeMap<Long, Invoker<T>>();
             this.identityHashCode = identityHashCode;
             URL url = invokers.get(0).getUrl();
+            //分区号生成有通过 methodName+HASH_NODES/DEFAULT_KEY_PREFIX(default.)+HASH_NODES两种生成键获取方式,这里默认值160
             this.replicaNumber = url.getMethodParameter(methodName, HASH_NODES, 160);
+            //COMMA_SPLIT_PATTERN通过包路径引用进来的,用于切割参数列表,获取方法参数索引下标
             String[] index = COMMA_SPLIT_PATTERN.split(url.getMethodParameter(methodName, HASH_ARGUMENTS, "0"));
             argumentIndex = new int[index.length];
             for (int i = 0; i < index.length; i++) {
+                //填充选择器中参数索引
                 argumentIndex[i] = Integer.parseInt(index[i]);
             }
             for (Invoker<T> invoker : invokers) {

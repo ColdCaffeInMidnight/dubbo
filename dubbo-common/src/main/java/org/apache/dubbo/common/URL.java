@@ -30,30 +30,10 @@ import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static org.apache.dubbo.common.constants.CommonConstants.ANYHOST_KEY;
-import static org.apache.dubbo.common.constants.CommonConstants.ANYHOST_VALUE;
-import static org.apache.dubbo.common.constants.CommonConstants.COMMA_SPLIT_PATTERN;
-import static org.apache.dubbo.common.constants.CommonConstants.DEFAULT_KEY_PREFIX;
-import static org.apache.dubbo.common.constants.CommonConstants.GROUP_KEY;
-import static org.apache.dubbo.common.constants.CommonConstants.HOST_KEY;
-import static org.apache.dubbo.common.constants.CommonConstants.INTERFACE_KEY;
-import static org.apache.dubbo.common.constants.CommonConstants.LOCALHOST_KEY;
-import static org.apache.dubbo.common.constants.CommonConstants.PASSWORD_KEY;
-import static org.apache.dubbo.common.constants.CommonConstants.PATH_KEY;
-import static org.apache.dubbo.common.constants.CommonConstants.PORT_KEY;
-import static org.apache.dubbo.common.constants.CommonConstants.PROTOCOL_KEY;
-import static org.apache.dubbo.common.constants.CommonConstants.USERNAME_KEY;
-import static org.apache.dubbo.common.constants.CommonConstants.VERSION_KEY;
+import static org.apache.dubbo.common.constants.CommonConstants.*;
 
 /**
  * URL - Uniform Resource Locator (Immutable, ThreadSafe)
@@ -493,6 +473,7 @@ class URL implements Serializable {
 
     public String getParameter(String key) {
         String value = parameters.get(key);
+        //直接根据key获取时,采用加前缀DEFAULT_KEY_PREFIX(default.)+key的方式获取值
         return StringUtils.isEmpty(value) ? parameters.get(DEFAULT_KEY_PREFIX + key) : value;
     }
 
@@ -696,6 +677,7 @@ class URL implements Serializable {
 
     public String getMethodParameter(String method, String key) {
         String value = parameters.get(method + "." + key);
+        //如果根据方法和key(hash.nodes)生成的键无法获取到对应值,则直接根据key去获取
         return StringUtils.isEmpty(value) ? getParameter(key) : value;
     }
 
@@ -1247,6 +1229,7 @@ class URL implements Serializable {
 
     /**
      * The format is "{interface}:[version]:[group]"
+     *
      * @return
      */
     public String getColonSeparatedKey() {
@@ -1271,6 +1254,7 @@ class URL implements Serializable {
 
     /**
      * The format of return value is '{group}/{interfaceName}:{version}'
+     *
      * @return
      */
     public String getServiceKey() {
@@ -1283,6 +1267,7 @@ class URL implements Serializable {
 
     /**
      * The format of return value is '{group}/{path/interfaceName}:{version}'
+     *
      * @return
      */
     public String getPathKey() {
@@ -1448,7 +1433,7 @@ class URL implements Serializable {
             return false;
         }
         URL other = (URL) obj;
-        if(!StringUtils.isEquals(host, other.host)) {
+        if (!StringUtils.isEquals(host, other.host)) {
             return false;
         }
         if (parameters == null) {
@@ -1458,19 +1443,19 @@ class URL implements Serializable {
         } else if (!parameters.equals(other.parameters)) {
             return false;
         }
-        if(!StringUtils.isEquals(password, other.password)) {
+        if (!StringUtils.isEquals(password, other.password)) {
             return false;
         }
-        if(!StringUtils.isEquals(path, other.path)) {
+        if (!StringUtils.isEquals(path, other.path)) {
             return false;
         }
         if (port != other.port) {
             return false;
         }
-        if(!StringUtils.isEquals(protocol, other.protocol)) {
+        if (!StringUtils.isEquals(protocol, other.protocol)) {
             return false;
         }
-        if(!StringUtils.isEquals(username, other.username)) {
+        if (!StringUtils.isEquals(username, other.username)) {
             return false;
         }
         return true;
